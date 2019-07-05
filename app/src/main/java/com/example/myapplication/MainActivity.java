@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
         return contextOfApplication;
     }
     public JSONObject userData;
+    static String userEmail;
 
 
     @Override
@@ -45,9 +46,10 @@ public class MainActivity extends AppCompatActivity {
             String result = data.getStringExtra("userJsonObject");
             try{
                 userData = new JSONObject(result);
+                userEmail = userData.get("email").toString();
 
                 Toast.makeText(this, "Welcome "+userData.get("name")+"!", Toast.LENGTH_SHORT).show();
-                Log.d("디버그", ""+userData.get("_id"));
+                Log.d("디버그", ""+userData.get("email"));
                 TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
                 tabLayout.addTab(tabLayout.newTab().setText("연락처"));
                 tabLayout.addTab(tabLayout.newTab().setText("갤러리"));
