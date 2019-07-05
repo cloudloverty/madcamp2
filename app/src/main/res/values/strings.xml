@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Project2</string>
+    <string name="about" />
+    <string name="exit" />
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="DeleteNote">Are you Sure?</string>
+    <string name="DeleteAlbum">앨범 삭제</string>
+</resources>
