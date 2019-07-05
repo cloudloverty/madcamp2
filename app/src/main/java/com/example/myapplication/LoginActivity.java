@@ -289,15 +289,20 @@ public class LoginActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            Toast.makeText(LoginActivity.this, "Login success", Toast.LENGTH_SHORT).show();
 
-            try {
-                Intent resultIntent = new Intent();
-                resultIntent.putExtra("userJsonObject", result);
-                setResult(RESULT_OK, resultIntent);
-                finish();
-            }catch (Exception e) {
-                e.printStackTrace();
+            if (result.equals("\"Email not exists\"") || result.equals("\"Wrong password\"")){
+                Toast.makeText(LoginActivity.this, ""+result, Toast.LENGTH_SHORT).show();
+                return;
+            }else{
+                try {
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("userJsonObject", result);
+                    setResult(RESULT_OK, resultIntent);
+                    Toast.makeText(LoginActivity.this, "Login success", Toast.LENGTH_SHORT).show();
+                    finish();
+                }catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
 
