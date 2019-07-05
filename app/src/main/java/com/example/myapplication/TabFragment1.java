@@ -20,8 +20,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.myapplication.Tab2.TabFragment2;
-import com.example.myapplication.Tab2.TabFragment2_Function;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.text.SimpleDateFormat;
@@ -187,7 +186,7 @@ public class TabFragment1 extends Fragment {
         super.onResume();
 
         String[] PERMISSIONS = {Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_CONTACTS};
-        if(!TabFragment2_Function.hasPermissions(tab1.getApplicationContext(), PERMISSIONS)){
+        if(!MainActivity.hasPermissions(tab1.getApplicationContext(), PERMISSIONS)){
             ActivityCompat.requestPermissions(getActivity(), PERMISSIONS, REQUEST_PERMISSION_KEY);
         }else{
             mResult = phoneBook();

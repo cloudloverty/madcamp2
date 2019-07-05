@@ -37,29 +37,13 @@
 
         <activity android:name=".TabFragment1_DetailInfo"/>
 
-        
-
-        <activity android:name=".Tab2.TabFragment2_AlbumActivity"
-            android:configChanges="orientation|screenSize"/>
-
-        <activity android:name=".Tab2.TabFragment2_GalleryPreview"
-            android:configChanges="orientation|screenSize"/>
-
-        <activity
-            android:name=".Tab2.TabFragment2_TakePictureActivity"
-            android:label="@string/app_name"
-            android:screenOrientation="landscape"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
-        </activity>
-
-        <activity android:name=".Tab2.TabFragment2_Delete"/>
+        <activity android:name=".TabFragment2_DetailImage"/>
 
 
         <activity
             android:name=".TabFragment3_DisplayNote"
             android:screenOrientation="portrait"
             android:label="@string/app_name" />
-        <activity android:name=".Tab2.TabFragment2_Selection" />
     </application>
 
 </manifest>
