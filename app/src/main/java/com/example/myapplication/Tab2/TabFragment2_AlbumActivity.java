@@ -50,21 +50,6 @@ public class TabFragment2_AlbumActivity extends AppCompatActivity {
         album_name = intent.getStringExtra("name");                                          // intent에서 앨범이름 읽어오기
         setTitle(album_name);                                                                       // 앨범이름 상단 바에 보이기
 
-        /*
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                    Intent cameraApp = new Intent(TabFragment2_AlbumActivity.this, TabFragment2_TakePictureActivity.class);
-                    cameraApp.putExtra("location", album_name);
-                    startActivity(cameraApp);
-
-                }
-
-        });
-        */
-
 
 
         galleryGridView = (GridView) findViewById(R.id.galleryGridView);                            // 선택된 앨범에 저장된 사진들의 이미지 미리보기
