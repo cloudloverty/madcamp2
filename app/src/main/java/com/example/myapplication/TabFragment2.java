@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -38,15 +39,8 @@ public class TabFragment2 extends Fragment {
     static final int REQUEST_PERMISSION_KEY = 1;
     Context tab2;
     GridView galleryGridView;
-    private int[] imageIDs = new int[]{
-            R.drawable.gallery_image_01,
-            R.drawable.gallery_image_02,
-            R.drawable.gallery_image_03,
-            R.drawable.gallery_image_04,
-            R.drawable.gallery_image_05,
-            R.drawable.gallery_image_06,
-            R.drawable.gallery_image_07,
-    };
+    private String[] images;
+    View view;
 
     public void onCreate(Bundle savedInstanceState)  {
         super.onCreate(savedInstanceState);
@@ -54,7 +48,7 @@ public class TabFragment2 extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        final View view = inflater.inflate(R.layout.tab_fragment_2, container, false);
+        view = inflater.inflate(R.layout.tab_fragment_2, container, false);
         tab2 = container.getContext();
 
         //권한 확인
@@ -63,43 +57,15 @@ public class TabFragment2 extends Fragment {
             ActivityCompat.requestPermissions(getActivity(), PERMISSIONS, REQUEST_PERMISSION_KEY);
         }
 
-
-        galleryGridView = (GridView) view.findViewById(R.id.galleryGridView);
-        TabFragment2_ImageGridAdapter imageGridAdapter = new TabFragment2_ImageGridAdapter(tab2, imageIDs);
-        galleryGridView.setAdapter(imageGridAdapter);
-
         String userEmail = MainActivity.userEmail;
         Log.d("디버그", "get userEmail from MainActivity in Tab2: "+userEmail);
-        new JSONTaskImage().execute("http://143.248.36.211:3000/imageGet", userEmail);
-
-        //to get byte[] of breathtaking man
-        /*
-        Bitmap bmp = BitmapFactory.decodeResource(tab2.getResources(), imageIDs[0]);
-        bmp = Bitmap.createScaledBitmap(bmp, 320, 240, false);
-        ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
-        bmp.compress(Bitmap.CompressFormat.PNG, 100, byteArray);
-        byte[] b = byteArray.toByteArray();
-        Log.d("디버그", "tab2: "+b);
-        */
-
-        /*
-        //resize
-        int iDisplayWidth = getResources().getDisplayMetrics().widthPixels ;
-        Resources resources = tab2.getApplicationContext().getResources();
-        DisplayMetrics metrics = resources.getDisplayMetrics();
-        float dp = iDisplayWidth / (metrics.densityDpi / 160f);
-        if(dp < 360) {
-            dp = (dp - 17) / 2;
-            float px = convertDpToPixel(dp, tab2.getApplicationContext());
-            galleryGridView.setColumnWidth(Math.round(px));
-        }
-        */
+        new JSONTaskUrl().execute("http://143.248.36.211:3000/urlsGet", userEmail);
 
         return view;
 
     }
 
-    public class JSONTaskImage extends AsyncTask<String, String, String> {
+    public class JSONTaskUrl extends AsyncTask<String, String, String> {
 
         @Override
         protected String doInBackground(String... parms) {
@@ -175,11 +141,16 @@ public class TabFragment2 extends Fragment {
             }else{
                 try{
                     JSONObject jsonObject = new JSONObject(result);
-                    JSONArray jsonArray = jsonObject.getJSONArray("image_IDs");
-                    String[] images = new String[jsonArray.length()];
+                    JSONArray jsonArray = jsonObject.getJSONArray("image_urls");
+                    images = new String[jsonArray.length()];
                     for(int i=0; i<jsonArray.length(); i++)
                         images[i] = jsonArray.get(i).toString();
-                    Log.d("디버그", "you are BREATHTAKING! "+ images[0]);
+
+
+                    galleryGridView = (GridView) view.findViewById(R.id.galleryGridView);
+
+                    TabFragment2_ImageGridAdapter imageGridAdapter = new TabFragment2_ImageGridAdapter(tab2, images);
+                    galleryGridView.setAdapter(imageGridAdapter);
 
                 }catch (Exception e){
                     e.printStackTrace();
@@ -202,5 +173,18 @@ public class TabFragment2 extends Fragment {
         return px;
     }
 
+
+    /*
+    //resize
+    int iDisplayWidth = getResources().getDisplayMetrics().widthPixels ;
+    Resources resources = tab2.getApplicationContext().getResources();
+    DisplayMetrics metrics = resources.getDisplayMetrics();
+    float dp = iDisplayWidth / (metrics.densityDpi / 160f);
+    if(dp < 360) {
+        dp = (dp - 17) / 2;
+        float px = convertDpToPixel(dp, tab2.getApplicationContext());
+        galleryGridView.setColumnWidth(Math.round(px));
+    }
+    */
 
 }

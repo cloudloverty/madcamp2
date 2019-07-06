@@ -108,7 +108,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void registerUser (String email_edt, String password_edt, String name_edt){
-        new JSONTaskRegister().execute("http://10.0.2.2:3000/register", email_edt, password_edt, name_edt);
+        new JSONTaskRegister().execute("http://143.248.36.211:3000/register", email_edt, password_edt, name_edt);
     }
 
     public class JSONTaskRegister extends AsyncTask<String, String, String> {

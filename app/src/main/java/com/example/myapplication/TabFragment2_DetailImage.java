@@ -1,6 +1,7 @@
 package com.example.myapplication;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.widget.ImageView;
 
@@ -18,7 +19,7 @@ public class TabFragment2_DetailImage  extends AppCompatActivity {
 
     private void setImage(ImageView imageView){
         Intent receivedIntent = getIntent();
-        int imageID = (Integer)receivedIntent.getExtras().get("image ID");
-        imageView.setImageResource(imageID);
+        Bitmap bitmap = (Bitmap) receivedIntent.getParcelableExtra("image");
+        imageView.setImageBitmap(bitmap);
     }
 }
