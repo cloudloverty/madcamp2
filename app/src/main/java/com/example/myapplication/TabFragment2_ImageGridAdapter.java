@@ -42,23 +42,14 @@ public class TabFragment2_ImageGridAdapter extends BaseAdapter{
     public long getItemId(int position) { return position; }
 
     public View getView(final int position, View convertView, ViewGroup parent){
-        Log.d("디버그", "check path: "+images[position]);
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////
-        final int[] temp = {R.drawable.gallery_image_01, R.drawable.gallery_image_02, R.drawable.gallery_image_03,R.drawable.gallery_image_04};
-        ////////////////////////////////////////////////////////////////////////////////////////////////
 
         final String path = images[position];
-        //Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), temp[2]);
-
 
         if(convertView != null)
             imageView = (ImageView)convertView;
         else {
-            Log.d("디버그", "start JSONTaskGetImage");
             try {
                 final Bitmap bitmap = new JSONTaskGetImage().execute("http://143.248.36.211:3000/imageGet", path).get();
-                Log.d("디버그", "bitmap updated!!!!!");
 
                 imageView = new ImageView(context);
                 imageView.setAdjustViewBounds(true);
@@ -67,7 +58,6 @@ public class TabFragment2_ImageGridAdapter extends BaseAdapter{
                 imageView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view){
-                        Log.d("디버그", "onClick: ");
                         Intent intent = new Intent(context, TabFragment2_DetailImage.class);
                         intent.putExtra("image", bitmap);
                         context.startActivity(intent);
@@ -79,9 +69,6 @@ public class TabFragment2_ImageGridAdapter extends BaseAdapter{
             }
         }
 
-        Log.d("디버그", "rendering on phone");
-
-        Log.d("디버그", "return imageView");
         return imageView;
     }
 
@@ -99,9 +86,9 @@ public class TabFragment2_ImageGridAdapter extends BaseAdapter{
 
                 try{
                     URL url = new URL(parms[0]);                                     //url을 가져온다.
-                    Log.d("디버그", "JSONTaskGetImage: "+url.toString());
+                    //Log.d("디버그", "JSONTaskGetImage: "+url.toString());
                     con = (HttpURLConnection) url.openConnection();
-                    Log.d("디버그", "open connection");
+                    //Log.d("디버그", "open connection");
                     con.setRequestMethod("POST");                                   //POST방식으로 보냄
                     con.setRequestProperty("Cache-Control", "no-cache");            //캐시 설정
                     con.setRequestProperty("Content-Type", "application/json");     //application JSON 형식으로 전송
@@ -110,9 +97,7 @@ public class TabFragment2_ImageGridAdapter extends BaseAdapter{
                     con.setDoOutput(true);                                          //Outstream으로 post 데이터를 넘겨주겠다는 의미
                     con.setDoInput(true);                                           //Inputstream으로 서버로부터 응답을 받겠다는 의미
 
-                    Log.d("디버그", "try connect");
                     con.connect();                                                  //연결 수행
-                    Log.d("디버그", "connect success");
 
                     //서버로 보내기위해서 스트림 만듬
                     OutputStream outStream = con.getOutputStream();
@@ -121,19 +106,15 @@ public class TabFragment2_ImageGridAdapter extends BaseAdapter{
                     writer.write(jsonObject.toString());
                     writer.flush();
                     writer.close();
-                    Log.d("디버그", "write flushed");
+                    //Log.d("디버그", "write flushed");
 
 
                     //입력 스트림 생성
                     InputStream stream = con.getInputStream();
 
-                    Log.d("디버그", "try get bitmap");
                     Bitmap image = BitmapFactory.decodeStream(stream);
-                    Log.d("디버그", "getting bitmap success");
 
                     Bitmap imageR = Bitmap.createScaledBitmap(image, 320, 240, false);
-
-                    Log.d("디버그", "return bitmap");
 
                     return imageR;
 

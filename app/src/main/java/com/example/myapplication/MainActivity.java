@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     }
     public JSONObject userData;
     static String userEmail;
+    static String[] userImages;
 
 
     @Override
