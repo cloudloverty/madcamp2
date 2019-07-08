@@ -17,11 +17,12 @@
             android:dividerHeight="2dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true" >
+            android:layout_alignParentTop="true"
+            >
         </ListView>
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/btnadd"
+            android:id="@+id/btn_add"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end|bottom"
@@ -30,6 +31,17 @@
             android:layout_alignParentRight="true"
             android:backgroundTint="#ffffff"
             android:src="@drawable/ic_plus" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btn_refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:layout_margin="16dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:backgroundTint="#ffffff"
+            android:src="@drawable/ic_refresh" />
 
     </RelativeLayout>
 

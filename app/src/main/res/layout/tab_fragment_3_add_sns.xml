@@ -7,24 +7,18 @@
     android:layout_height="wrap_content">
 
     <com.rengwuxian.materialedittext.MaterialEditText
-        android:id="@+id/edit_email"
-        android:hint="Email"
-        android:inputType="textEmailAddress"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-    <com.rengwuxian.materialedittext.MaterialEditText
-        android:id="@+id/edit_name"
-        android:hint="Name"
+        android:id="@+id/edit_title"
+        android:hint="Title"
         android:inputType="text"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
     <com.rengwuxian.materialedittext.MaterialEditText
-        android:id="@+id/edit_password"
-        android:hint="Password"
-        android:inputType="textEmailAddress"
+        android:id="@+id/edit_body"
+        android:hint="What are you thinking about?"
+        android:inputType="textMultiLine"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="200dp"
+        android:scrollHorizontally="false"/>
 
 </LinearLayout>
