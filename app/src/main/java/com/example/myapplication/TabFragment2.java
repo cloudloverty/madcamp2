@@ -84,6 +84,14 @@ public class TabFragment2 extends Fragment {
             }
         });
 
+        FloatingActionButton btnRefresh = (FloatingActionButton) view.findViewById(R.id.Btn_refresh);
+        btnRefresh.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                new JSONTaskUrl().execute("http://143.248.36.211:3000/urlsGet", userEmail);
+            }
+        });
+
         return view;
     }
 
@@ -151,7 +159,6 @@ public class TabFragment2 extends Fragment {
                     con.setRequestProperty("Accept", "text/html");                  //서버에 response 데이터를 html로 받음
                     con.setDoOutput(true);                                          //Outstream으로 post 데이터를 넘겨주겠다는 의미
                     con.setDoInput(true);                                           //Inputstream으로 서버로부터 응답을 받겠다는 의미
-
                     con.connect();                                                  //연결 수행
 
                     //서버로 보내기위해서 스트림 만듬
@@ -200,25 +207,24 @@ public class TabFragment2 extends Fragment {
             super.onPostExecute(result);
 
             if (result.equals("\"No images\"")){
-                Toast.makeText(tab2, ""+result, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(tab2, ""+result, Toast.LENGTH_SHORT).show();
                 return;
             }else{
                 try{
                     JSONObject jsonObject = new JSONObject(result);
                     JSONArray jsonArray = jsonObject.getJSONArray("image_urls");
+
                     images = new String[jsonArray.length()];
                     for(int i=0; i<jsonArray.length(); i++)
                         images[i] = jsonArray.get(i).toString();
 
-
+                    Log.d("디버그", "url 배열: "+images);
+                    Log.d("디버그", "어댑터 설정 ");
                     galleryGridView = (GridView) view.findViewById(R.id.galleryGridView);
-
                     TabFragment2_ImageGridAdapter imageGridAdapter = new TabFragment2_ImageGridAdapter(tab2, images);
                     galleryGridView.setAdapter(imageGridAdapter);
 
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
+                }catch (Exception e){ e.printStackTrace(); }
 
             }
         }
@@ -277,7 +283,9 @@ public class TabFragment2 extends Fragment {
                     outputStream.writeBytes("Content-Transfer-Encoding: binary" + "\r\n");
                     outputStream.writeBytes("\r\n");
                     bytesAvailable = fileInputStream.available();
+                    Log.d("디버그", "bytesAvailable: "+bytesAvailable);
                     bufferSize = Math.min(bytesAvailable, 1048576);
+                    Log.d("디버그", "buffer size: "+bufferSize);
                     buffer = new byte[bufferSize];
                     bytesRead = fileInputStream.read(buffer, 0, bufferSize);
                     while (bytesRead > 0) {
@@ -286,8 +294,10 @@ public class TabFragment2 extends Fragment {
                         bufferSize = Math.min(bytesAvailable, 1048576);
                         bytesRead = fileInputStream.read(buffer, 0, bufferSize);
                     }
+
                     outputStream.writeBytes("\r\n");
                     outputStream.writeBytes("--" + boundary + "--" + "\r\n");
+
                     inputStream = con.getInputStream();
                     int status = con.getResponseCode();
                     if (status == HttpURLConnection.HTTP_OK) {
@@ -297,13 +307,16 @@ public class TabFragment2 extends Fragment {
 
                         while ((inputLine = in.readLine()) != null)
                             response.append(inputLine);
-
                         inputStream.close();
                         con.disconnect();
                         fileInputStream.close();
                         outputStream.flush();
                         outputStream.close();
                     }
+                    con.disconnect();
+                    outputStream.flush();
+                    outputStream.close();
+
 
 
                 } catch(Exception e){ e.printStackTrace(); }

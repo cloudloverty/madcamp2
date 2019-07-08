@@ -45,10 +45,12 @@ public class TabFragment2_ImageGridAdapter extends BaseAdapter{
 
         final String path = images[position];
 
-        if(convertView != null)
+        if(convertView != null){
             imageView = (ImageView)convertView;
-        else {
+            Log.d("디버그", "noooo");
+        } else {
             try {
+                Log.d("디버그", "try jsonTaskGetImage");
                 final Bitmap bitmap = new JSONTaskGetImage().execute("http://143.248.36.211:3000/imageGet", path).get();
 
                 imageView = new ImageView(context);
@@ -77,6 +79,7 @@ public class TabFragment2_ImageGridAdapter extends BaseAdapter{
         @Override
         protected Bitmap doInBackground(String... parms) {
             try{
+                Log.d("디버그", "enter doInBack");
                 JSONObject jsonObject = new JSONObject();
                 String imageURL = parms[1];
                 jsonObject.accumulate("imageURL", imageURL);
@@ -96,9 +99,9 @@ public class TabFragment2_ImageGridAdapter extends BaseAdapter{
                     con.setRequestProperty("Accept", "text/html");                  //서버에 response 데이터를 html로 받음
                     con.setDoOutput(true);                                          //Outstream으로 post 데이터를 넘겨주겠다는 의미
                     con.setDoInput(true);                                           //Inputstream으로 서버로부터 응답을 받겠다는 의미
-
+                    Log.d("디버그", "connect?");
                     con.connect();                                                  //연결 수행
-
+                    Log.d("디버그", "connect!");
                     //서버로 보내기위해서 스트림 만듬
                     OutputStream outStream = con.getOutputStream();
                     //버퍼를 생성하고 넣음
