@@ -44,6 +44,7 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        setTitle("Cloudy Login");
 
         //init view
         edt_login_email = (MaterialEditText) findViewById(R.id.edit_email);
