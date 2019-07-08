@@ -3,6 +3,7 @@ package com.example.myapplication;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,14 +20,25 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+
 
 public class TabFragment3 extends Fragment {
-    private ListView obj;
-    TabFragment3_NDb mydb;
     FloatingActionButton btnadd;
-    ListView mylist;
-    CoordinatorLayout coordinatorLayout;
-    SimpleCursorAdapter adapter;
+    ListView SNSlistView;
+    View view;
+    LinearLayout linearLayout;
     Context tab3;
 
     public void onCreate(Bundle savedInstanceState) {
@@ -35,68 +47,136 @@ public class TabFragment3 extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        final View view = inflater.inflate(R.layout.tab_fragment_3, container, false);
-
+        view = inflater.inflate(R.layout.tab_fragment_3, container, false);
         tab3 = container.getContext();
+        linearLayout = (LinearLayout) view.findViewById(R.id.linearLayout); // CoordinatorLayout view
+        try {
+            Log.d("디버그2", "start JSONTaskGetSNS...");
+            final String JsonArrayBuffer = new JSONTaskGetSNS().execute("http://143.248.36.211:3000/sns").get();
+            final JSONArray list = new JSONArray(JsonArrayBuffer);
+            Log.d("디버그2", "jsonArray_string: "+JsonArrayBuffer);
 
-        coordinatorLayout = (CoordinatorLayout) view.findViewById(R.id.coordinatorLayout); // CoordinatorLayout view
-        mydb = new TabFragment3_NDb(tab3);
+            renderView(list);   //implement later
 
-        //할 일을 추가하는 버튼. id를 지정해준 뒤에 TabFragment3_DisplayNote를 실행시킴
-        //추가하는 액티비티가 끝나면 startActivityForResult를 통해서 onActivityResult에 적어놓은 코드를 실행(listView 업데이트)
-        btnadd = (FloatingActionButton) view.findViewById(R.id.btnadd);
-        btnadd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Bundle dataBundle = new Bundle();
-                dataBundle.putInt("id", 0);
-                Intent intent = new Intent(tab3, TabFragment3_DisplayNote.class);
-                intent.putExtras(dataBundle);
-                startActivityForResult(intent, 3000);
-            }
-        });
 
-        //tab3가 처음 불려졌을 때, 현재 db에서 데이터를 fetch해서 listView에 표시해줌
-        ///////////////////////first fetch when tab3 is is activated///////////////////////////////
-        Cursor c = mydb.fetchAll();
-        String[] fieldNames = new String[] { TabFragment3_NDb.name, TabFragment3_NDb._id, TabFragment3_NDb.dates, TabFragment3_NDb.remark };
-        int[] display = new int[] { R.id.txtnamerow, R.id.txtidrow, R.id.txtdate,R.id.txtremark };
-        adapter = new SimpleCursorAdapter(tab3, R.layout.tab_fragment_3_list_template, c, fieldNames, display, 0);
-        mylist = (ListView) view.findViewById(R.id.listView1);
-        mylist.setAdapter(adapter);
-        ///////////////////////////////////////////////////////////////////////////////////////////
-
-        //listView가 클릭됐을 때, intent에 정보를 넣어서 startActivityForResult
-        //액티비티가 끝나면 onActivityResult에 적힌 코드를 실행(listView 업데이트)
-        mylist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
-                                    long arg3) {
-                LinearLayout linearLayoutParent = (LinearLayout) arg1;
-                LinearLayout linearLayoutChild = (LinearLayout) linearLayoutParent.getChildAt(0);
-                TextView m = (TextView) linearLayoutChild.getChildAt(1);
-                Bundle dataBundle = new Bundle();
-                dataBundle.putInt("id", Integer.parseInt(m.getText().toString()));
-                Intent intent = new Intent(tab3, TabFragment3_DisplayNote.class);
-                intent.putExtras(dataBundle);
-
-                startActivityForResult(intent, 3000);
-
-            }
-        });
+        } catch (Exception e) {e.printStackTrace();}
 
         return view;
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data){
-        super.onActivityResult(requestCode, resultCode, data);
 
-        Cursor c = mydb.fetchAll();
-        String[] fieldNames = new String[] { TabFragment3_NDb.name, TabFragment3_NDb._id, TabFragment3_NDb.dates, TabFragment3_NDb.remark };
-        int[] display = new int[] { R.id.txtnamerow, R.id.txtidrow, R.id.txtdate,R.id.txtremark };
-        adapter = new SimpleCursorAdapter(tab3, R.layout.tab_fragment_3_list_template, c, fieldNames, display, 0);
-        mylist.setAdapter(adapter);
+    public void renderView(JSONArray list){
+        final JSONArray listf = list;
+        SNSlistView = (ListView) view.findViewById(R.id.listView);
+        TabFragment3_CustomAdapter customAdapter = new TabFragment3_CustomAdapter(tab3, list);
+        SNSlistView.setAdapter(customAdapter);
+
+
+        SNSlistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                try {
+                    JSONObject j = listf.getJSONObject(position);
+                    Intent intent = new Intent(tab3, TabFragment3_DisplayNote.class);
+                    intent.putExtra("json", j.toString());
+
+                    startActivityForResult(intent, 3000);
+                } catch (Exception e) {}
+            }
+        });
 
     }
+
+
+    public class JSONTaskGetSNS extends AsyncTask<String, String, String>{
+
+        @Override
+        protected String doInBackground(String... parms) {
+            try{
+                JSONObject jsonObject = new JSONObject();
+                Log.d("디버그2", "making useless jsonobject");
+
+                HttpURLConnection con = null;
+                BufferedReader reader = null;
+
+                try{
+                    URL url = new URL(parms[0]);                                     //url을 가져온다.
+                    con = (HttpURLConnection) url.openConnection();
+                    con.setRequestMethod("GET");                                   //GET방식으로 보냄
+
+                    con.setRequestProperty("Accept", "text/html");                  //서버에 response 데이터를 html로 받음
+                    con.setDoInput(true);                                           //Inputstream으로 서버로부터 응답을 받겠다는 의미
+
+                    Log.d("디버그2", "connecting...");
+                    con.connect();                                                  //연결 수행
+                    Log.d("디버그2", "connection success");
+
+                    //입력 스트림 생성
+                    InputStream stream = con.getInputStream();
+                    reader = new BufferedReader(new InputStreamReader(stream));    //속도를 향상시키고 부하를 줄이기 위한 버퍼를 선언한다
+                    StringBuffer buffer = new StringBuffer();                      //실제 데이터를 받는곳
+
+                    //line별 스트링을 받기 위한 temp 변수
+                    String line = "";
+                    while((line = reader.readLine()) != null){
+                        buffer.append(line);
+                    }
+
+
+                    return buffer.toString();
+
+                } catch (Exception e){
+                    e.printStackTrace();
+                } finally{
+                    if (con != null)
+                        con.disconnect();
+                }
+
+            } catch(Exception e){ e.printStackTrace(); }
+
+        return null;
+        }
+    }
+
+
 }
+
+
+/*
+*     public class SNSdata {
+        private String writer;
+        private String title;
+        private String body;
+        private String date;
+
+        public SNSdata(String writer, String title, String body, String date){
+            this.writer = writer;
+            this.title = title;
+            this.body = body;
+            this.date = date;
+        }
+
+        public String getWriter() {return writer;}
+        public String getTitle() {return title;}
+        public String getBody() {return body;}
+        public String getDate() {return date;}
+
+        public ArrayList getSNSdata(JSONArray list) {
+            ArrayList snsDataArray = new ArrayList();
+
+            for(int i=0; i<list.length(); i++){
+                try {
+                    JSONObject j = list.getJSONObject(i);
+                    String writerS = j.getString("writer");
+                    String titleS = j.getString("title");
+                    String bodyS = j.getString("body");
+                    String dateS = j.getString("date");
+                    snsDataArray.add(new SNSdata(writerS, titleS, bodyS, dateS));
+                }catch(Exception e) {e.printStackTrace();}
+            }
+            return snsDataArray;
+        }
+
+
+    }
+* */
