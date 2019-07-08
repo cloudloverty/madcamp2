@@ -2,7 +2,6 @@ package com.example.myapplication;
 
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -13,12 +12,9 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.fragment.app.Fragment;
 
 import com.afollestad.materialdialogs.DialogAction;
@@ -45,7 +41,6 @@ import java.util.Date;
 
 
 public class TabFragment3 extends Fragment {
-    FloatingActionButton btnadd;
     ListView SNSlistView;
     View view;
     LinearLayout linearLayout;
@@ -62,16 +57,15 @@ public class TabFragment3 extends Fragment {
         linearLayout = (LinearLayout) view.findViewById(R.id.linearLayout);
 
         try {
-            Log.d("디버그2", "start JSONTaskGetSNS...");
             final String JsonArrayBuffer = new JSONTaskGetSNS().execute("http://143.248.36.211:3000/sns").get();
             final JSONArray list = new JSONArray(JsonArrayBuffer);
-            Log.d("디버그2", "jsonArray_string: "+JsonArrayBuffer);
 
-            renderView(list);   //implement later
+            renderView(list);   //first rendering
 
         } catch (Exception e) {e.printStackTrace();}
 
 
+        ///////////////////////////SNS post Btn/////////////////////////////////////////////////////
         FloatingActionButton btnAdd = (FloatingActionButton) view.findViewById(R.id.btn_add) ;
         btnAdd.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -111,22 +105,24 @@ public class TabFragment3 extends Fragment {
 
             }
         });
+        ////////////////////////////////////////////////////////////////////////////////////////////
 
+
+        //////////////////////////////////SNS refresh Btn///////////////////////////////////////////
         FloatingActionButton btnRefresh = (FloatingActionButton) view.findViewById(R.id.btn_refresh);
         btnRefresh.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
                 try {
-                    Log.d("디버그2", "restart JSONTaskGetSNS...");
                     final String JsonArrayBuffer = new JSONTaskGetSNS().execute("http://143.248.36.211:3000/sns").get();
                     final JSONArray list = new JSONArray(JsonArrayBuffer);
-                    Log.d("디버그2", "jsonArray_string: "+JsonArrayBuffer);
 
                     renderView(list);   //implement later
 
                 } catch (Exception e) {e.printStackTrace();}
             }
         });
+        ////////////////////////////////////////////////////////////////////////////////////////////
 
 
         return view;
@@ -139,7 +135,7 @@ public class TabFragment3 extends Fragment {
         TabFragment3_CustomAdapter customAdapter = new TabFragment3_CustomAdapter(tab3, list);
         SNSlistView.setAdapter(customAdapter);
 
-
+        //////////////////////////////////Detail info/////////////////////////////////////////////
         SNSlistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -152,9 +148,10 @@ public class TabFragment3 extends Fragment {
                 } catch (Exception e) {}
             }
         });
-
+        ////////////////////////////////////////////////////////////////////////////////////////////
 
     }
+
 
     public void addSNS(String title_edt, String body_edt){
         long now = System.currentTimeMillis();
@@ -165,11 +162,11 @@ public class TabFragment3 extends Fragment {
         new JSONTaskPostSNS().execute("http://143.248.36.211:3000/snsPost", title_edt, writer_edt, date_edt, body_edt);
     }
 
+
     public class JSONTaskPostSNS extends AsyncTask<String, String, String>{
         @Override
         protected String doInBackground(String... parms) {
             try {
-                //JSONObject를 만들고 key value 형식으로 값을 저장해준다.
                 JSONObject jsonObject = new JSONObject();
                 String title = parms[1];
                 String writerp = parms[2];
@@ -185,62 +182,44 @@ public class TabFragment3 extends Fragment {
                 BufferedReader reader = null;
 
                 try {
-                    URL url = new URL(parms[0]);                                     //url을 가져온다.
+                    URL url = new URL(parms[0]);
                     con = (HttpURLConnection) url.openConnection();
                     con.setRequestMethod("POST");//POST방식으로 보냄
-                    con.setRequestProperty("Cache-Control", "no-cache");            //캐시 설정
-                    con.setRequestProperty("Content-Type", "application/json");     //application JSON 형식으로 전송
+                    con.setRequestProperty("Cache-Control", "no-cache");
+                    con.setRequestProperty("Content-Type", "application/json");
+                    con.setRequestProperty("Accept", "text/html");
+                    con.setDoOutput(true);
+                    con.setDoInput(true);
+                    con.connect();
 
-                    con.setRequestProperty("Accept", "text/html");                  //서버에 response 데이터를 html로 받음
-                    con.setDoOutput(true);                                          //Outstream으로 post 데이터를 넘겨주겠다는 의미
-                    con.setDoInput(true);                                           //Inputstream으로 서버로부터 응답을 받겠다는 의미
-
-                    con.connect();          //연결 수행
-
-                    //서버로 보내기위해서 스트림 만듬
                     OutputStream outStream = con.getOutputStream();
-                    //버퍼를 생성하고 넣음
                     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outStream));
                     writer.write(jsonObject.toString());
                     writer.flush();
-                    writer.close();//버퍼를 받아줌
+                    writer.close();
 
-
-                    //입력 스트림 생성
                     InputStream stream = con.getInputStream();
-                    reader = new BufferedReader(new InputStreamReader(stream));    //속도를 향상시키고 부하를 줄이기 위한 버퍼를 선언한다
-                    StringBuffer buffer = new StringBuffer();                      //실제 데이터를 받는곳
-
-                    //line별 스트링을 받기 위한 temp 변수
+                    reader = new BufferedReader(new InputStreamReader(stream));
+                    StringBuffer buffer = new StringBuffer();
                     String line = "";
-                    while ((line = reader.readLine()) != null) {
+                    while ((line = reader.readLine()) != null)
                         buffer.append(line);
-                    }
 
                     return buffer.toString();
 
-                    //아래는 예외처리 부분이다.
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
-                    //종료가 되면 disconnect메소드를 호출한다.
-                    if (con != null) {
+                    if (con != null)
                         con.disconnect();
-                    }
                     try {
-                        //버퍼를 닫아준다.
-                        if (reader != null) {
+                        if (reader != null)
                             reader.close();
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }//finally 부분
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                    } catch (IOException e) { e.printStackTrace(); }
+                }
+            } catch (Exception e) { e.printStackTrace(); }
 
             return null;
         }
@@ -252,34 +231,24 @@ public class TabFragment3 extends Fragment {
         protected String doInBackground(String... parms) {
             try{
                 JSONObject jsonObject = new JSONObject();
-                Log.d("디버그2", "making useless jsonobject");
 
                 HttpURLConnection con = null;
                 BufferedReader reader = null;
 
                 try{
-                    URL url = new URL(parms[0]);                                     //url을 가져온다.
+                    URL url = new URL(parms[0]);
                     con = (HttpURLConnection) url.openConnection();
-                    con.setRequestMethod("GET");                                   //GET방식으로 보냄
+                    con.setRequestMethod("GET");                                    //GET방식으로 보냄
+                    con.setRequestProperty("Accept", "text/html");
+                    con.setDoInput(true);
+                    con.connect();
 
-                    con.setRequestProperty("Accept", "text/html");                  //서버에 response 데이터를 html로 받음
-                    con.setDoInput(true);                                           //Inputstream으로 서버로부터 응답을 받겠다는 의미
-
-                    Log.d("디버그2", "connecting...");
-                    con.connect();                                                  //연결 수행
-                    Log.d("디버그2", "connection success");
-
-                    //입력 스트림 생성
                     InputStream stream = con.getInputStream();
-                    reader = new BufferedReader(new InputStreamReader(stream));    //속도를 향상시키고 부하를 줄이기 위한 버퍼를 선언한다
-                    StringBuffer buffer = new StringBuffer();                      //실제 데이터를 받는곳
-
-                    //line별 스트링을 받기 위한 temp 변수
+                    reader = new BufferedReader(new InputStreamReader(stream));
+                    StringBuffer buffer = new StringBuffer();
                     String line = "";
-                    while((line = reader.readLine()) != null){
+                    while((line = reader.readLine()) != null)
                         buffer.append(line);
-                    }
-
 
                     return buffer.toString();
 
@@ -289,7 +258,6 @@ public class TabFragment3 extends Fragment {
                     if (con != null)
                         con.disconnect();
                 }
-
             } catch(Exception e){ e.printStackTrace(); }
 
         return null;
@@ -299,42 +267,3 @@ public class TabFragment3 extends Fragment {
 
 }
 
-
-/*
-*     public class SNSdata {
-        private String writer;
-        private String title;
-        private String body;
-        private String date;
-
-        public SNSdata(String writer, String title, String body, String date){
-            this.writer = writer;
-            this.title = title;
-            this.body = body;
-            this.date = date;
-        }
-
-        public String getWriter() {return writer;}
-        public String getTitle() {return title;}
-        public String getBody() {return body;}
-        public String getDate() {return date;}
-
-        public ArrayList getSNSdata(JSONArray list) {
-            ArrayList snsDataArray = new ArrayList();
-
-            for(int i=0; i<list.length(); i++){
-                try {
-                    JSONObject j = list.getJSONObject(i);
-                    String writerS = j.getString("writer");
-                    String titleS = j.getString("title");
-                    String bodyS = j.getString("body");
-                    String dateS = j.getString("date");
-                    snsDataArray.add(new SNSdata(writerS, titleS, bodyS, dateS));
-                }catch(Exception e) {e.printStackTrace();}
-            }
-            return snsDataArray;
-        }
-
-
-    }
-* */

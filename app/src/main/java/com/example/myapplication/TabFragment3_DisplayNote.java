@@ -10,8 +10,6 @@ import org.json.JSONObject;
 
 public class TabFragment3_DisplayNote extends AppCompatActivity {
 
-    String dateString;
-    int id_To_Update = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
