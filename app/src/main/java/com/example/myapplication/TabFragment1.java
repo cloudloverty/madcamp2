@@ -43,6 +43,10 @@ public class TabFragment1 extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Intent intent = new Intent(getActivity(), ContactDBListActivity.class);
+        startActivity(intent);
+
         v = inflater.inflate(R.layout.tab_fragment_1, container, false);
         cont = inflater.getContext();
         tab1 = container.getContext();

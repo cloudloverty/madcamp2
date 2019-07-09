@@ -39,6 +39,7 @@
 
         <activity android:name=".TabFragment2_DetailImage"/>
 
+        <activity android:name=".ContactDBListActivity"/>
 
         <activity
             android:name=".TabFragment3_DisplayNote"
