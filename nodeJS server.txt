@@ -1,0 +1,268 @@
+//import package
+var mongodb = require('mongodb');
+var ObjectID = mongodb.ObjectID;
+var crypto = require('crypto');
+var express = require('express');
+var bodyParser = require('body-parser');
+var fs = require('fs');
+var multer = require('multer');
+var Q = require('q');
+
+//create express service
+var app = express();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+
+//create mongoDB client
+var MongoClient = mongodb.MongoClient;
+
+//connection URL
+var url = 'mongodb://localhost:27017'  //default port
+
+
+
+//connect with MongoDB
+MongoClient.connect(url, {useNewUrlParser: true}, function(err, client){
+  if(err)
+    console.log('Unable to connect to the mongoDB server.Error', err);
+  else{
+
+
+    //////////////////////Register/////////////////////////////
+    app.post('/register', (request, response, next)=>{
+      var post_data = request.body;
+
+      //var plaint_password = post_data.password;
+      //var hash_data = saltHashPassword(plaint_password);
+
+      //var password = hash_data.passwordHash;  //password hash
+      //var salt = hash_data.salt;  //save salt
+
+      var email = post_data.email;
+      var password = post_data.password;
+      var name = post_data.name;
+      
+
+      var insertJson = {
+        'email': email,
+        'password': password,
+        //'salt': salt,
+        'name': name
+      };
+      var db = client.db('user_practice');
+
+      //check exists email
+      db.collection('users')
+        .find({'email': email}).count(function(err, number){
+          if(number != 0){
+            response.json('Email already exists');
+            console.log('Email already exists');
+          }else{
+            //insert data
+            db.collection('users')
+              .insertOne(insertJson, function(error, res){
+                response.json('Registeration success');
+                console.log('Registeration success');
+              })
+          }
+        })
+
+      var newGallery = {'userEmail': email, 'image_urls':[]};
+      db.collection('gallery')
+        .insertOne(newGallery);
+    })
+    /////////////////////////////////////////////////////////
+
+
+
+
+    ////////////////////////Log in/////////////////////////////
+    app.post('/login', (request, response, next)=>{
+      var post_data = request.body;
+
+      var email = post_data.email;
+      var userPassword = post_data.password;
+      
+      var db = client.db('user_practice');
+
+      //check exists email
+      db.collection('users')
+        .find({'email': email}).count(function(err, number){
+          if(number == 0){
+            response.json('Email not exists');
+            console.log('Email not exists');
+          }else{
+            db.collection('users')
+              .findOne({'email': email}, function(err, user){
+                //var salt = user.salt;
+                //var hashed_password = checkHashPassword(userPassword, salt).passwordHash;
+                //var encrypted_password = user.password;
+                if (user.password == userPassword){
+                  response.json(user);
+                  console.log('Login success');
+                }else{
+                  response.json('Wrong password');
+                  console.log('Wrong password');
+                } 
+              });
+          }
+        });
+    })
+    /////////////////////////////////////////////////////
+
+
+
+    /////////////////image URL//////////////////
+    app.post('/urlsGet', (request, response, next)=>{
+      var post_data = request.body;
+
+      var email = post_data.email;
+      console.log(email);
+
+      var db = client.db('user_practice');
+
+      //find image urls
+      db.collection('gallery')
+        .find({'userEmail': email}).count(function(err, number){
+          if(number == 0){
+            response.json('no images');
+            console.log(email);
+            console.log('no images');
+          }else{
+            db.collection('gallery')
+              .findOne({'userEmail': email}, function(err, user){
+                response.json(user);
+                console.log('pass image db to client');
+              })
+          }
+        })
+    })
+    ////////////////////////////////////////////////
+
+
+
+
+    ////////////////send image to clinet//////////////////
+    app.post('/imageGet', (request, response, next)=>{
+      var post_data = request.body;
+
+      var url = post_data.imageURL;
+
+      //find image
+      console.log('send image to client: '+'C:\\Program Files\\nodejs\\node_js_ok'+url);
+      response.sendFile('C:\\Program Files\\nodejs\\node_js_ok'+url);
+    })
+    ///////////////////////////////////////////////////
+
+
+
+    ////////////////upload image to server////////////////
+    var upload = multer({
+      storage: multer.diskStorage({
+        destination: function (request, file, cb){cb(null, 'gallery');},
+        filename: function(request, file, cb){
+          var imageName = file.originalname.split('$');
+          cb(null, imageName[0]);}
+      }),
+    });
+    
+    app.post('/imagePost', upload.single('file'), function(request, response){
+      console.log('showing file info');
+      console.log(request.file);
+      response.send('OK');    //do not erase
+      var userID = request.file.originalname.split('$');
+      var imageName = '/gallery/'+userID[0];
+      var email = userID[1];
+
+      var db = client.db('user_practice');
+
+      db.collection('gallery')
+        .updateOne({'userEmail': email}, {$push: {image_urls: imageName}});
+      console.log('add: '+imageName);
+    })
+    ////////////////////////////////////////////////
+
+
+
+    ////////////////send SNS to client////////////
+    app.get('/sns', (request, response)=>{
+      console.log('get /sns request');
+
+      var db = client.db('user_practice');
+      db.collection('SNS').find({}).toArray((err, result)=>{
+        response.json(result.reverse());
+      });
+
+    })
+    ////////////////////////////////////////////////
+
+
+
+
+    ////////////////add SNS to DB/////////////////
+    app.post('/snsPost', (request, response, next)=>{
+      console.log('get /snsPost request');
+      var sns_data = request.body;
+
+      var writer = sns_data.writer; 
+      var title = sns_data.title;
+      var body = sns_data.body;
+      var date = sns_data.date;
+      
+      var snsJson = {
+        'writer': writer,
+        'title': title,
+        'body': body,
+        'date': date
+      };
+      var db = client.db('user_practice');
+
+      db.collection('SNS')
+        .insertOne(snsJson, function(err, res){
+          response.json('OK');
+          console.log('insert new sns data to DB');
+        })
+
+    })
+    ////////////////////////////////////////////////
+
+    
+
+    //start web server
+    app.listen(3000, () => {
+      console.log('Connected to MongoDB Server, WebService running on port 3000');
+    
+    })
+  }
+});
+
+
+
+
+//PASSWORD ULTILS
+//CREATE FUNCTION TO RANDOM SALT
+/*
+var genRandomString = function(length){
+  return crypto.randomBytes(Math.ceil(length/2))
+    .toString('hex')
+    .slice(0, length);};
+var sha512 = function(password, salt){
+  var hash = crypto.createHmac('sha512', salt);
+  hash.update(password);
+  var value = hash.digest('hex');
+  return {
+    salt: salt,
+    passwordHash:value
+  };};
+function saltHashPassword(userPassword){
+  var salt = genRandomString(16);
+  var passwordData = sha512(userPassword, salt);
+  return passwordData;}
+function checkHashPassword(userPassword, salt){
+  var passwordData = sha512(userPassword, salt);
+  return passwordData; }
+*/
+
+
+
+
